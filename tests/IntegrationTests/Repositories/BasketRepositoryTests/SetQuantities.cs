@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System; // Fixes the 'Guid' error
+using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.eShopWeb.ApplicationCore.Interfaces;
@@ -18,16 +20,16 @@ public class SetQuantities
     private readonly EfRepository<Basket> _basketRepository;
     private readonly BasketBuilder _basketBuilder = new();
 
-    public SetQuantities()
-    {
-        var dbOptions = new DbContextOptionsBuilder<CatalogContext>()
-            .UseInMemoryDatabase(databaseName: "TestCatalog_SetQuantities")
-            .Options;
-        _catalogContext = new CatalogContext(dbOptions);
+   public SetQuantities()
+{
+    var dbOptions = new DbContextOptionsBuilder<CatalogContext>()
+        .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+        .Options;
+    _catalogContext = new CatalogContext(dbOptions);
 
-        var mockDispatcher = new Mock<IDomainEventDispatcher>();
-        _basketRepository = new EfRepository<Basket>(_catalogContext, mockDispatcher.Object);
-    }
+    var mockDispatcher = new Moq.Mock<Microsoft.eShopWeb.ApplicationCore.Interfaces.IDomainEventDispatcher>();
+    _basketRepository = new EfRepository<Basket>(_catalogContext, mockDispatcher.Object);
+}
 
     [Fact]
     public async Task RemoveEmptyQuantities()

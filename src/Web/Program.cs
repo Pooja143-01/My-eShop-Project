@@ -17,7 +17,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddHttpClient();
 // Add service defaults & Aspire components.
 builder.AddAspireServiceDefaults();
-builder.Services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
+// Use the interface from ApplicationCore and the implementation from Infrastructure
+builder.Services.AddScoped<Microsoft.eShopWeb.ApplicationCore.Interfaces.IDomainEventDispatcher,Microsoft.eShopWeb.Infrastructure.Services.DomainEventDispatcher>();
 builder.Services.AddHttpClient<OrderService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 

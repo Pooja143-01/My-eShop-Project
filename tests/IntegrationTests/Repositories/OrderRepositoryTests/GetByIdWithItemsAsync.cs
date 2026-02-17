@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System; // Fixes the 'Guid' error
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -20,15 +21,17 @@ public class GetByIdWithItemsAsync
     private OrderBuilder OrderBuilder { get; } = new OrderBuilder();
 
     public GetByIdWithItemsAsync()
-    {
-        var dbOptions = new DbContextOptionsBuilder<CatalogContext>()
-            .UseInMemoryDatabase(databaseName: "TestCatalog_GetByIdWithItems")
-            .Options;
-        _catalogContext = new CatalogContext(dbOptions);
+{
+    var dbOptions = new DbContextOptionsBuilder<CatalogContext>()
+        .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString()) // Unique DB per test
+        .Options;
+    _catalogContext = new CatalogContext(dbOptions);
 
-        var mockDispatcher = new Mock<IDomainEventDispatcher>();
-        _orderRepository = new EfRepository<Order>(_catalogContext, mockDispatcher.Object);
-    }
+    // Using Full Namespace to avoid CS0246
+    var mockDispatcher = new Moq.Mock<Microsoft.eShopWeb.ApplicationCore.Interfaces.IDomainEventDispatcher>();
+    
+    _orderRepository = new EfRepository<Order>(_catalogContext, mockDispatcher.Object);
+}
 
     [Fact]
     public async Task GetOrderAndItemsByOrderIdWhenMultipleOrdersPresent()

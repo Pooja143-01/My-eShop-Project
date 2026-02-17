@@ -5,7 +5,7 @@ using Ardalis.Specification.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.eShopWeb.ApplicationCore.Entities;
 using Microsoft.eShopWeb.ApplicationCore.Interfaces;
-using Microsoft.eShopWeb.Infrastructure.Services;
+
 
 namespace Microsoft.eShopWeb.Infrastructure.Data
 {
@@ -17,14 +17,16 @@ namespace Microsoft.eShopWeb.Infrastructure.Data
         where T : class, IAggregateRoot
     {
         private readonly CatalogContext _dbContext;
-        private readonly IDomainEventDispatcher _dispatcher;
+      // Update these lines in your EfRepository class:
+private readonly Microsoft.eShopWeb.ApplicationCore.Interfaces.IDomainEventDispatcher _dispatcher;
 
-        public EfRepository(CatalogContext dbContext, IDomainEventDispatcher dispatcher)
-            : base(dbContext)
-        {
-            _dbContext = dbContext;
-            _dispatcher = dispatcher;
-        }
+public EfRepository(CatalogContext dbContext, 
+    Microsoft.eShopWeb.ApplicationCore.Interfaces.IDomainEventDispatcher dispatcher) 
+    : base(dbContext)
+{
+    _dbContext = dbContext;
+    _dispatcher = dispatcher;
+}
 
         public override async Task<T> AddAsync(T entity, CancellationToken cancellationToken = default)
         {

@@ -3,35 +3,33 @@ using System.Linq;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.eShopWeb.ApplicationCore.Entities;
+using Microsoft.eShopWeb.ApplicationCore.Interfaces;
 
-namespace Microsoft.eShopWeb.Infrastructure.Services
+namespace Microsoft.eShopWeb.Infrastructure.Services;
+
+// This class implements the interface defined in ApplicationCore
+public class DomainEventDispatcher : IDomainEventDispatcher
 {
-    public interface IDomainEventDispatcher
+    private readonly IMediator _mediator;
+
+    public DomainEventDispatcher(IMediator mediator)
     {
-        Task DispatchAndClearEvents(IEnumerable<BaseEntity> entitiesWithEvents);
+        _mediator = mediator;
     }
 
-    public class DomainEventDispatcher : IDomainEventDispatcher
+    public async Task DispatchAndClearEvents(IEnumerable<BaseEntity> entitiesWithEvents)
     {
-        private readonly IMediator _mediator;
+        if (entitiesWithEvents == null) return;
 
-        public DomainEventDispatcher(IMediator mediator)
+        foreach (var entity in entitiesWithEvents)
         {
-            _mediator = mediator;
-        }
+            var events = entity.DomainEvents?.ToArray() ?? System.Array.Empty<INotification>();
+            
+            entity.ClearDomainEvents();
 
-        public async Task DispatchAndClearEvents(IEnumerable<BaseEntity> entitiesWithEvents)
-        {
-            foreach (var entity in entitiesWithEvents)
+            foreach (var domainEvent in events)
             {
-                var events = entity.DomainEvents?.ToArray() ?? new INotification[0];
-
-                entity.ClearDomainEvents();
-
-                foreach (var domainEvent in events)
-                {
-                    await _mediator.Publish(domainEvent);
-                }
+                await _mediator.Publish(domainEvent);
             }
         }
     }
