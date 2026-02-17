@@ -2,9 +2,11 @@
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.eShopWeb.ApplicationCore.Entities.BasketAggregate;
+using Microsoft.eShopWeb.ApplicationCore.Interfaces;
 using Microsoft.eShopWeb.ApplicationCore.Services;
 using Microsoft.eShopWeb.Infrastructure.Data;
 using Microsoft.eShopWeb.UnitTests.Builders;
+using Moq;
 using Xunit;
 
 namespace Microsoft.eShopWeb.IntegrationTests.Repositories.BasketRepositoryTests;
@@ -18,10 +20,12 @@ public class SetQuantities
     public SetQuantities()
     {
         var dbOptions = new DbContextOptionsBuilder<CatalogContext>()
-            .UseInMemoryDatabase(databaseName: "TestCatalog")
+            .UseInMemoryDatabase(databaseName: "TestCatalog_SetQuantities")
             .Options;
         _catalogContext = new CatalogContext(dbOptions);
-        _basketRepository = new EfRepository<Basket>(_catalogContext);
+
+        var mockDispatcher = new Mock<IDomainEventDispatcher>();
+        _basketRepository = new EfRepository<Basket>(_catalogContext, mockDispatcher.Object);
     }
 
     [Fact]

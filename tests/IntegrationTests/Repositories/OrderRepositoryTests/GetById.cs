@@ -2,9 +2,12 @@
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.eShopWeb.ApplicationCore.Entities.OrderAggregate;
+using Microsoft.eShopWeb.ApplicationCore.Interfaces;
 using Microsoft.eShopWeb.Infrastructure.Data;
 using Microsoft.eShopWeb.UnitTests.Builders;
+using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.eShopWeb.IntegrationTests.Repositories.OrderRepositoryTests;
 
@@ -14,14 +17,19 @@ public class GetById
     private readonly EfRepository<Order> _orderRepository;
     private OrderBuilder OrderBuilder { get; } = new OrderBuilder();
     private readonly ITestOutputHelper _output;
+
     public GetById(ITestOutputHelper output)
     {
         _output = output;
         var dbOptions = new DbContextOptionsBuilder<CatalogContext>()
-            .UseInMemoryDatabase(databaseName: "TestCatalog")
+            .UseInMemoryDatabase(databaseName: "TestCatalog_GetById")
             .Options;
         _catalogContext = new CatalogContext(dbOptions);
-        _orderRepository = new EfRepository<Order>(_catalogContext);
+
+        // Create a mock dispatcher to satisfy the new constructor
+        var mockDispatcher = new Mock<IDomainEventDispatcher>();
+        
+        _orderRepository = new EfRepository<Order>(_catalogContext, mockDispatcher.Object);
     }
 
     [Fact]
@@ -36,8 +44,6 @@ public class GetById
         var orderFromRepo = await _orderRepository.GetByIdAsync(orderId, TestContext.Current.CancellationToken);
         Assert.Equal(OrderBuilder.TestBuyerId, orderFromRepo.BuyerId);
 
-        // Note: Using InMemoryDatabase OrderItems is available. Will be null if using SQL DB.
-        // Use the OrderWithItemsByIdSpec instead of just GetById to get the full aggregate
         var firstItem = orderFromRepo.OrderItems.FirstOrDefault();
         Assert.Equal(OrderBuilder.TestUnits, firstItem.Units);
     }
