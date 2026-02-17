@@ -79,6 +79,7 @@
     <None Include="wwwroot\images\products\9.png" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Ardalis.Specification.EntityFrameworkCore" VersionOverride="9.3.1" />
     <Content Update="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
