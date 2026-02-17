@@ -7,7 +7,6 @@ using Microsoft.eShopWeb.Infrastructure.Data;
 using Microsoft.eShopWeb.UnitTests.Builders;
 using Moq;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.eShopWeb.IntegrationTests.Repositories.OrderRepositoryTests;
 
@@ -16,19 +15,15 @@ public class GetById
     private readonly CatalogContext _catalogContext;
     private readonly EfRepository<Order> _orderRepository;
     private OrderBuilder OrderBuilder { get; } = new OrderBuilder();
-    private readonly ITestOutputHelper _output;
 
-    public GetById(ITestOutputHelper output)
+    public GetById()
     {
-        _output = output;
         var dbOptions = new DbContextOptionsBuilder<CatalogContext>()
             .UseInMemoryDatabase(databaseName: "TestCatalog_GetById")
             .Options;
         _catalogContext = new CatalogContext(dbOptions);
 
-        // Create a mock dispatcher to satisfy the new constructor
         var mockDispatcher = new Mock<IDomainEventDispatcher>();
-        
         _orderRepository = new EfRepository<Order>(_catalogContext, mockDispatcher.Object);
     }
 
@@ -39,9 +34,8 @@ public class GetById
         _catalogContext.Orders.Add(existingOrder);
         _catalogContext.SaveChanges();
         int orderId = existingOrder.Id;
-        _output.WriteLine($"OrderId: {orderId}");
 
-        var orderFromRepo = await _orderRepository.GetByIdAsync(orderId, TestContext.Current.CancellationToken);
+        var orderFromRepo = await _orderRepository.GetByIdAsync(orderId, default);
         Assert.Equal(OrderBuilder.TestBuyerId, orderFromRepo.BuyerId);
 
         var firstItem = orderFromRepo.OrderItems.FirstOrDefault();

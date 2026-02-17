@@ -52,7 +52,7 @@ public class GetByIdWithItemsAsync
         int secondOrderId = secondOrder.Id;
 
         var spec = new OrderWithItemsByIdSpec(secondOrderId);
-        var orderFromRepo = await _orderRepository.FirstOrDefaultAsync(spec, TestContext.Current.CancellationToken);
+        var orderFromRepo = await _orderRepository.FirstOrDefaultAsync(spec, default);
 
         Assert.Equal(secondOrderId, orderFromRepo.Id);
         Assert.Equal(secondOrder.OrderItems.Count, orderFromRepo.OrderItems.Count);
