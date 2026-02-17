@@ -2,24 +2,55 @@ version: '3.4'
 
 services:
   eshopwebmvc:
-    image: ${DOCKER_REGISTRY-}eshopwebmvc
+    container_name: eshopwebmvc
+    image: eshopwebmvc
     build:
       context: .
       dockerfile: src/Web/Dockerfile
+    ports:
+      - "8080:8080"       # Web on http://localhost:8080
+    environment:
+      # Bind ASP.NET Core to port 8080 inside the container
+      - ASPNETCORE_URLS=http://0.0.0.0:8080
+      - ASPNETCORE_ENVIRONMENT=Development
+
+      # Web -> API base URL (use compose service name + port the API listens on)
+      - PublicApiBaseUrl=http://eshoppublicapi:8080
+
+      # DB connection strings to SQL Server container
+      - ConnectionStrings__CatalogConnection=Server=sqlserver;Database=Microsoft.eShopOnWeb.CatalogDb;User Id=sa;Password=@someThingComplicated1234;TrustServerCertificate=True
+      - ConnectionStrings__IdentityConnection=Server=sqlserver;Database=Microsoft.eShopOnWeb.Identity;User Id=sa;Password=@someThingComplicated1234;TrustServerCertificate=True
+
+      # ✅ Prevent crash: satisfy Seq health-check extension
+      # (We are NOT running Seq. This avoids the exception thrown when ServerUrl is missing.)
+      - Seq__ServerUrl=http://seq:5341
     depends_on:
-      - "sqlserver"
+      - eshoppublicapi
+      - sqlserver
+
   eshoppublicapi:
-    image: ${DOCKER_REGISTRY-}eshoppublicapi
+    container_name: eshoppublicapi
+    image: eshoppublicapi
     build:
       context: .
       dockerfile: src/PublicApi/Dockerfile
+    ports:
+      - "8081:8080"       # API on http://localhost:8081/swagger
+    environment:
+      # Bind API to 8080 inside container (logs showed it uses 8080)
+      - ASPNETCORE_URLS=http://0.0.0.0:8080
+      - ASPNETCORE_ENVIRONMENT=Development
+
+      # DB connection for API
+      - ConnectionStrings__CatalogConnection=Server=sqlserver;Database=Microsoft.eShopOnWeb.CatalogDb;User Id=sa;Password=@someThingComplicated1234;TrustServerCertificate=True
     depends_on:
-      - "sqlserver"
+      - sqlserver
+
   sqlserver:
+    container_name: sqlserver
     image: mcr.microsoft.com/mssql/server:2022-latest
     ports:
       - "1433:1433"
     environment:
-      - SA_PASSWORD=@someThingComplicated1234
-      - ACCEPT_EULA=Y
-
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "@someThingComplicated1234"

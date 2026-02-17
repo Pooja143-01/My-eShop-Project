@@ -1,0 +1,21 @@
+{
+    "version": "2.0",
+    "logging": {
+        "applicationInsights": {
+            "samplingSettings": {
+                "isEnabled": true,
+                "excludedTypes": "Request"
+            }
+        }
+    },
+    "extensions": {
+        "serviceBus": {
+            "clientRetryOptions": {
+                "mode": "exponential",
+                "maxRetries": 3,
+                "delay": "00:00:10",
+                "maxDelay": "00:01:00"
+            }
+        }
+    }
+}

@@ -9,11 +9,17 @@ using Microsoft.eShopWeb.Web.Areas.Identity.Helpers;
 using Microsoft.eShopWeb.Web.Configuration;
 using Microsoft.eShopWeb.Web.Extensions;
 using NimblePros.Metronome;
-
+using Microsoft.eShopWeb.ApplicationCore.Services;
+using MediatR;
+using Microsoft.eShopWeb.Infrastructure.Services;
+using Microsoft.eShopWeb.ApplicationCore.Entities.OrderAggregate.Events;
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Services.AddHttpClient();
 // Add service defaults & Aspire components.
 builder.AddAspireServiceDefaults();
+builder.Services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
+builder.Services.AddHttpClient<OrderService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 
 builder.Services.AddDatabaseContexts(builder.Environment, builder.Configuration);
 
@@ -24,6 +30,14 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
            .AddDefaultUI()
            .AddEntityFrameworkStores<AppIdentityDbContext>()
            .AddDefaultTokenProviders();
+// Register MediatR for domain events
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssemblies(
+        typeof(OrderCreatedEvent).Assembly,  // ApplicationCore (events)
+        typeof(Program).Assembly             // Web (handlers)
+    );
+});
 
 var gitHubClientId = builder.Configuration["GitHub:ClientId"] ?? string.Empty;
 
